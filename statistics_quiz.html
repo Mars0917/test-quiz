@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工程統計學線上測驗系統</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #7c3aed;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+            border-bottom: 2px solid var(--border);
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.8s ease-out 0.2s both;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.15);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--primary);
+            display: block;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .quiz-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.6s ease-out 0.4s both;
+        }
+
+        .question-number {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: 500;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            color: var(--text-primary);
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option {
+            background: var(--bg-main);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.1), transparent);
+            transition: width 0.3s ease;
+            z-index: 0;
+        }
+
+        .option:hover::before {
+            width: 100%;
+        }
+
+        .option:hover {
+            border-color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .option-letter {
+            min-width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            position: relative;
+            z-index: 1;
+        }
+
+        .option-text {
+            flex: 1;
+            font-size: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .option.selected {
+            border-color: var(--primary);
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        .option.correct {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .option.wrong {
+            border-color: var(--error);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .option.correct .option-letter {
+            background: var(--success);
+        }
+
+        .option.wrong .option-letter {
+            background: var(--error);
+        }
+
+        .feedback {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        .feedback.correct {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .feedback.wrong {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        .feedback-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .explanation {
+            color: var(--text-primary);
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            line-height: 1.8;
+        }
+
+        .button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Noto Sans TC', sans-serif;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .button.secondary {
+            background: var(--bg-hover);
+            box-shadow: none;
+        }
+
+        .button.secondary:hover {
+            background: var(--border);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .quiz-card {
+                padding: 1.5rem;
+            }
+
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 工程統計學測驗</h1>
+            <p class="subtitle">每次測驗隨機生成新題目 · 即時回饋學習</p>
+        </header>
+
+        <div class="stats-bar">
+            <div class="stat-card">
+                <span class="stat-value" id="totalQuestions">0</span>
+                <div class="stat-label">總測驗次數</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="correctAnswers">0</span>
+                <div class="stat-label">答對題數</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="accuracy">0%</span>
+                <div class="stat-label">正確率</div>
+            </div>
+        </div>
+
+        <div id="quizArea"></div>
+    </div>
+
+    <script>
+        // 題庫資料
+        const questionBank = [
+            {
+                id: 1,
+                topic: "機率與獨立事件",
+                question: "某營造公司將投標 A、B、C 三項工程，工程得標率分別為 P(A)=0.5，P(B)=0.8，P(C)=0.2。假設事件 A、B、C 互為獨立，以 X 表示得標工程的件數。請問得標 2 件工程的機率 P(X=2) 為何？",
+                options: [
+                    "0.08",
+                    "0.32",
+                    "0.42",
+                    "0.50"
+                ],
+                correct: 2,
+                explanation: "P(X=2) 需計算三種情況：(A且B且非C) + (A且非B且C) + (非A且B且C)。計算得：(0.5×0.8×0.8) + (0.5×0.2×0.2) + (0.5×0.2×0.2) = 0.32 + 0.02 + 0.08 = 0.42"
+            },
+            {
+                id: 2,
+                topic: "非破壞性檢驗與獨立事件",
+                question: "利用 NDT 儀器偵測電銲裂縫，偵出率為 0.8。假設每個裂縫被偵測出之事件互為獨立。若電銲中有 2 條裂縫，請問皆不被偵測出的機率為何？",
+                options: [
+                    "0.01",
+                    "0.04",
+                    "0.16",
+                    "0.36"
+                ],
+                correct: 1,
+                explanation: "單一裂縫未被偵測的機率為 1-0.8 = 0.2。兩條裂縫皆未被偵測的機率 = (0.2)² = 0.04"
+            },
+            {
+                id: 3,
+                topic: "期望值與變異數",
+                question: "某隨機變數 N 的機率分布為：P(N=0)=0.6，P(N=1)=0.3，P(N=2)=0.1。請問 N 的期望值 E[N] 為何？",
+                options: [
+                    "0.3",
+                    "0.5",
+                    "0.7",
+                    "1.0"
+                ],
+                correct: 1,
+                explanation: "E[N] = 0×0.6 + 1×0.3 + 2×0.1 = 0 + 0.3 + 0.2 = 0.5"
+            },
+            {
+                id: 4,
+                topic: "常態分布",
+                question: "某城市年雨量 X 符合平均值 1500mm、變異係數 CV=0.2 的常態分布。請問標準差 σ 為何？",
+                options: [
+                    "150mm",
+                    "200mm",
+                    "300mm",
+                    "500mm"
+                ],
+                correct: 2,
+                explanation: "變異係數 CV = σ/μ，因此 σ = CV × μ = 0.2 × 1500 = 300mm"
+            },
+            {
+                id: 5,
+                topic: "常態分布標準化",
+                question: "承上題，年雨量低於 900mm 的機率 P(X<900) 約為何？（已知標準常態分布 Z=-2 時，P(Z<-2)≈0.0228）",
+                options: [
+                    "0.0228",
+                    "0.1587",
+                    "0.5000",
+                    "0.9772"
+                ],
+                correct: 0,
+                explanation: "Z = (900-1500)/300 = -2，查表得 P(Z<-2) ≈ 0.0228"
+            },
+            {
+                id: 6,
+                topic: "Poisson 分布基礎",
+                question: "某國平均每 5 年發生 2 次破壞性地震，假設地震發生遵從 Poisson 分布。請問 3 年內只有 1 次破壞性地震的機率約為何？",
+                options: [
+                    "0.30",
+                    "0.36",
+                    "0.42",
+                    "0.50"
+                ],
+                correct: 1,
+                explanation: "平均發生率 λ = 2/5 = 0.4 次/年。3 年期望值 λ = 3×0.4 = 1.2。P(X=1) = e^(-1.2) × 1.2^1 / 1! ≈ 0.3614"
+            },
+            {
+                id: 7,
+                topic: "Poisson 分布應用",
+                question: "某地區發生洪水的平均率為 8 年 1 次，遵從 Poisson 分布。請問 10 年中沒有洪水的機率約為何？",
+                options: [
+                    "0.12",
+                    "0.29",
+                    "0.36",
+                    "0.50"
+                ],
+                correct: 1,
+                explanation: "10 年期望值 λ = 10/8 = 1.25。P(X=0) = e^(-1.25) ≈ 0.2865"
+            },
+            {
+                id: 8,
+                topic: "Poisson 分布與獨立事件",
+                question: "某大樓所在地，破壞性強震平均 50 年發生 1 次，颶風平均 25 年 1 次，皆遵從 Poisson 分布。請問 10 年中同時受颶風與強震侵襲的機率約為何？",
+                options: [
+                    "0.06",
+                    "0.18",
+                    "0.27",
+                    "0.45"
+                ],
+                correct: 0,
+                explanation: "10年內強震 λ₁=0.2，颶風 λ₂=0.4。P(風≥1 且 震≥1) = (1-e^(-0.4))(1-e^(-0.2)) ≈ 0.0598"
+            },
+            {
+                id: 9,
+                topic: "工安意外 Poisson 分布",
+                question: "某營造廠工人平均 6 個月發生 1 次意外事件，遵從 Poisson 分布。請問 1 年中發生意外次數的期望值為何？",
+                options: [
+                    "0.5 次",
+                    "1.0 次",
+                    "2.0 次",
+                    "6.0 次"
+                ],
+                correct: 2,
+                explanation: "平均發生率 = 1次/0.5年 = 2次/年。因此 1 年期望值 E[X] = λ = 2"
+            },
+            {
+                id: 10,
+                topic: "條件機率",
+                question: "某 NDT 儀器偵出裂縫率為 0.8。電銲中真正裂縫數 N 的分布為：P(N=0)=0.6，P(N=1)=0.3，P(N=2)=0.1。若儀器偵不出任何裂縫，則電銲中真正沒有裂縫的機率約為何？",
+                options: [
+                    "0.60",
+                    "0.75",
+                    "0.90",
+                    "0.95"
+                ],
+                correct: 2,
+                explanation: "P(未偵測) = 0.6×1 + 0.3×0.2 + 0.1×0.04 = 0.664。P(N=0|未偵測) = 0.6/0.664 ≈ 0.904"
+            },
+            {
+                id: 11,
+                topic: "PDF 與期望值",
+                question: "某隨機變數 R 的 PDF 為 f(r)=3/500(r-10)(20-r)，10≤r≤20。此分布在區間內對稱，請問 R 的期望值 E[R] 為何？",
+                options: [
+                    "10",
+                    "12",
+                    "15",
+                    "18"
+                ],
+                correct: 2,
+                explanation: "由於 PDF 在區間 [10,20] 內對稱，期望值必為對稱中心點 E[R] = (10+20)/2 = 15"
+            },
+            {
+                id: 12,
+                topic: "獨立隨機變數和",
+                question: "旅客由 A 市經 B 市到 C 市，T1(A到B)與 T2(B到C)為獨立隨機變數，穿過 B 市需 1hr。若 E[T1]=2.3hr，E[T2]=4.75hr，則 A 到 C 總時間的期望值為何？",
+                options: [
+                    "6.05 hr",
+                    "7.05 hr",
+                    "8.05 hr",
+                    "9.05 hr"
+                ],
+                correct: 2,
+                explanation: "總時間 T = T1 + T2 + 1，期望值 E[T] = E[T1] + E[T2] + 1 = 2.3 + 4.75 + 1 = 8.05hr"
+            },
+            {
+                id: 13,
+                topic: "常態分布信賴區間",
+                question: "工程 A 平均 30 天完工，有 90% 信心可在 40 天內完成。若完工天數 X 為常態分布，則標準差 σ 約為何？（已知 z₀.₉=1.28）",
+                options: [
+                    "5.81 天",
+                    "7.81 天",
+                    "9.81 天",
+                    "11.81 天"
+                ],
+                correct: 1,
+                explanation: "P(X≤40)=0.9 對應 z=1.28。由 (40-30)/σ = 1.28 得 σ ≈ 7.81"
+            },
+            {
+                id: 14,
+                topic: "Poisson 複合事件",
+                question: "某高樓在 10 年中，強震發生率 λ₁=0.2，颶風發生率 λ₂=0.4，皆遵從 Poisson 分布。若強震損壞機率 0.1，颶風損壞機率 0.05，且損壞事件獨立。請問 10 年中受損壞的機率約為何？",
+                options: [
+                    "0.15",
+                    "0.30",
+                    "0.45",
+                    "0.60"
+                ],
+                correct: 2,
+                explanation: "P(10年受損) = 1 - P(無風且無震) = 1 - e^(-0.4)×e^(-0.2) ≈ 0.4512"
+            },
+            {
+                id: 15,
+                topic: "變異係數",
+                question: "某隨機變數 N 的分布為：P(N=0)=0.6，P(N=1)=0.3，P(N=2)=0.1。已知 E[N]=0.5，Var(N)=0.45，請問變異係數 CV 約為何？",
+                options: [
+                    "0.67",
+                    "0.90",
+                    "1.34",
+                    "2.00"
+                ],
+                correct: 2,
+                explanation: "變異係數 CV = σ/μ = √(0.45)/0.5 = 0.671/0.5 ≈ 1.34"
+            }
+        ];
+
+        // 全域變數
+        let stats = {
+            total: 0,
+            correct: 0
+        };
+
+        let currentQuestion = null;
+        let answered = false;
+
+        // 初始化
+        function init() {
+            loadStats();
+            generateNewQuestion();
+        }
+
+        // 載入統計資料
+        function loadStats() {
+            const saved = localStorage.getItem('quizStats');
+            if (saved) {
+                stats = JSON.parse(saved);
+                updateStatsDisplay();
+            }
+        }
+
+        // 儲存統計資料
+        function saveStats() {
+            localStorage.setItem('quizStats', JSON.stringify(stats));
+            updateStatsDisplay();
+        }
+
+        // 更新統計顯示
+        function updateStatsDisplay() {
+            document.getElementById('totalQuestions').textContent = stats.total;
+            document.getElementById('correctAnswers').textContent = stats.correct;
+            const accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+        }
+
+        // 隨機選擇題目
+        function generateNewQuestion() {
+            answered = false;
+            const randomIndex = Math.floor(Math.random() * questionBank.length);
+            currentQuestion = questionBank[randomIndex];
+            renderQuestion();
+        }
+
+        // 渲染題目
+        function renderQuestion() {
+            const quizArea = document.getElementById('quizArea');
+            quizArea.innerHTML = `
+                <div class="quiz-card">
+                    <div class="question-number">題型：${currentQuestion.topic}</div>
+                    <div class="question-text">${currentQuestion.question}</div>
+                    <div class="options">
+                        ${currentQuestion.options.map((option, index) => `
+                            <div class="option" onclick="selectOption(${index})">
+                                <div class="option-letter">${String.fromCharCode(65 + index)}</div>
+                                <div class="option-text">${option}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div id="feedback"></div>
+                    <div class="button-group">
+                        <button class="button" onclick="submitAnswer()" id="submitBtn">提交答案</button>
+                        <button class="button secondary" onclick="generateNewQuestion()">下一題</button>
+                        <button class="button secondary" onclick="resetStats()">重置統計</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 選擇選項
+        function selectOption(index) {
+            if (answered) return;
+            
+            const options = document.querySelectorAll('.option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            options[index].classList.add('selected');
+            
+            currentQuestion.selectedAnswer = index;
+        }
+
+        // 提交答案
+        function submitAnswer() {
+            if (answered) {
+                generateNewQuestion();
+                return;
+            }
+
+            if (currentQuestion.selectedAnswer === undefined) {
+                alert('請先選擇一個答案！');
+                return;
+            }
+
+            answered = true;
+            stats.total++;
+
+            const options = document.querySelectorAll('.option');
+            const feedbackDiv = document.getElementById('feedback');
+            const submitBtn = document.getElementById('submitBtn');
+
+            // 標記正確答案
+            options[currentQuestion.correct].classList.add('correct');
+
+            // 檢查答案
+            if (currentQuestion.selectedAnswer === currentQuestion.correct) {
+                stats.correct++;
+                feedbackDiv.innerHTML = `
+                    <div class="feedback correct">
+                        <div class="feedback-title">✓ 答對了！做得好！</div>
+                        <div class="explanation">${currentQuestion.explanation}</div>
+                    </div>
+                `;
+            } else {
+                options[currentQuestion.selectedAnswer].classList.add('wrong');
+                feedbackDiv.innerHTML = `
+                    <div class="feedback wrong">
+                        <div class="feedback-title">✗ 答錯了，繼續加油！</div>
+                        <div class="explanation">${currentQuestion.explanation}</div>
+                    </div>
+                `;
+            }
+
+            // 禁用選項
+            options.forEach(opt => opt.style.pointerEvents = 'none');
+            submitBtn.textContent = '下一題';
+
+            saveStats();
+        }
+
+        // 重置統計
+        function resetStats() {
+            if (confirm('確定要重置所有統計資料嗎？')) {
+                stats = { total: 0, correct: 0 };
+                saveStats();
+                generateNewQuestion();
+            }
+        }
+
+        // 啟動
+        init();
+    </script>
+</body>
+</html>
